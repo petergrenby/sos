@@ -24,10 +24,10 @@
 package se.grenby.sos.object;
 
 import se.grenby.sos.bbb.ByteBlockBufferReader;
-import se.grenby.sos.reader.ByteBlockBufferWrapperReader;
-import se.grenby.sos.reader.BufferReader;
+import se.grenby.sos.readpointer.ByteBlockBufferWrapperReadPointer;
+import se.grenby.sos.readpointer.BufferReadPointer;
 import se.grenby.sos.json.JsonDataMap;
-import se.grenby.sos.reader.ByteBufferWrapperReader;
+import se.grenby.sos.readpointer.ByteBufferWrapperReadPointer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -45,26 +45,26 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
     private final int mapTotalLength;
 
     public SosMap(ByteBuffer byteBuffer) {
-        this(new ByteBufferWrapperReader(byteBuffer));
+        this(new ByteBufferWrapperReadPointer(byteBuffer));
     }
 
     public SosMap(ByteBlockBufferReader blockReader, int blockPointer) {
-        this(new ByteBlockBufferWrapperReader(blockReader, blockPointer));
+        this(new ByteBlockBufferWrapperReadPointer(blockReader, blockPointer));
     }
 
-    public SosMap(BufferReader bufferReader) {
-        this(bufferReader, 0);
+    public SosMap(BufferReadPointer bufferReadPointer) {
+        this(bufferReadPointer, 0);
     }
 
-    public SosMap(BufferReader bufferReader, int position) {
-        super(bufferReader, position);
+    public SosMap(BufferReadPointer bufferReadPointer, int position) {
+        super(bufferReadPointer, position);
 
         int blockPosition = startBlockPosition;
 
-        byte valueType = bufferReader.getByte(blockPosition);
+        byte valueType = bufferReadPointer.getByte(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == MAP_VALUE) {
-            mapTotalLength = bufferReader.getShort(blockPosition);
+            mapTotalLength = bufferReadPointer.getShort(blockPosition);
             blockPosition += Short.BYTES;
             mapStartPosition = blockPosition;
         } else {
@@ -116,12 +116,12 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
             String mk = getStringFromByteBuffer(position);
             if (key.equals(mk)) {
                 int valuePosition = position.position();
-                int valueType = bufferReader.getByte(position.position());
+                int valueType = bufferReadPointer.getByte(position.position());
                 position.incByte();
                 if (valueType == MAP_VALUE) {
-                    value = klass.cast(new SosMap(bufferReader, valuePosition));
+                    value = klass.cast(new SosMap(bufferReadPointer, valuePosition));
                 } else if (valueType == LIST_VALUE) {
-                    value = klass.cast(new SosList(bufferReader, valuePosition));
+                    value = klass.cast(new SosList(bufferReadPointer, valuePosition));
                 } else {
                     value = extractValue(klass, valueType, position);
                 }
@@ -158,16 +158,16 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
     private SosMapEntry extractEntry(SosPosition position) {
         String mk = getStringFromByteBuffer(position);
         int valuePosition = position.position();
-        int valueType = bufferReader.getByte(position.position());
+        int valueType = bufferReadPointer.getByte(position.position());
         position.incByte();
 
         SosMapEntry entry;
         if (valueType == MAP_VALUE) {
-            SosMap cdm = new SosMap(bufferReader, valuePosition);
+            SosMap cdm = new SosMap(bufferReadPointer, valuePosition);
             entry = new SosMapEntry(mk, cdm);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == LIST_VALUE) {
-            SosList cdl = new SosList(bufferReader, valuePosition);
+            SosList cdl = new SosList(bufferReadPointer, valuePosition);
             entry = new SosMapEntry(mk, cdl);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {

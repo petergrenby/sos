@@ -23,7 +23,7 @@
  */
 package se.grenby.sos.object;
 
-import se.grenby.sos.reader.BufferReader;
+import se.grenby.sos.readpointer.BufferReadPointer;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,19 +34,19 @@ import static se.grenby.sos.util.BitUtil.HEXES;
  * Created by peteri on 30/01/16.
  */
 public abstract class SosObject {
-    protected final BufferReader bufferReader;
+    protected final BufferReadPointer bufferReadPointer;
     protected final int startBlockPosition;
 
-    SosObject(BufferReader bufferReader, int position) {
-        this.bufferReader = bufferReader;
+    SosObject(BufferReadPointer bufferReadPointer, int position) {
+        this.bufferReadPointer = bufferReadPointer;
         this.startBlockPosition = position;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bufferReader.getAllocatedSize(); i++) {
-            byte b = bufferReader.getByte(i);
+        for (int i = 0; i < bufferReadPointer.getAllocatedSize(); i++) {
+            byte b = bufferReadPointer.getByte(i);
             sb.append(HEXES[(b & 0xff) >>> 4]);
             sb.append(HEXES[(b & 0xf)]);
             sb.append(" ");
@@ -57,24 +57,24 @@ public abstract class SosObject {
     protected <T> T extractValue(Class<T> klass, int valueType, SosPosition position) {
         T value;
         if (valueType == BYTE_VALUE) {
-            value = klass.cast(bufferReader.getByte(position.position()));
+            value = klass.cast(bufferReadPointer.getByte(position.position()));
             position.incByte();
         } else if (valueType == SHORT_VALUE) {
-            value = klass.cast(bufferReader.getShort(position.position()));
+            value = klass.cast(bufferReadPointer.getShort(position.position()));
             position.incShort();
         } else if (valueType == INTEGER_VALUE) {
-            value = klass.cast(bufferReader.getInt(position.position()));
+            value = klass.cast(bufferReadPointer.getInt(position.position()));
             position.incInteger();
         } else if (valueType == LONG_VALUE) {
-            value = klass.cast(bufferReader.getLong(position.position()));
+            value = klass.cast(bufferReadPointer.getLong(position.position()));
             position.incLong();
         } else if (valueType == STRING_VALUE) {
             value = klass.cast(getStringFromByteBuffer(position));
         } else if (valueType == FLOAT_VALUE) {
-            value = klass.cast(bufferReader.getFloat(position.position()));
+            value = klass.cast(bufferReadPointer.getFloat(position.position()));
             position.incFloat();
         } else if (valueType == DOUBLE_VALUE) {
-            value = klass.cast(bufferReader.getDouble(position.position()));
+            value = klass.cast(bufferReadPointer.getDouble(position.position()));
             position.incDouble();
         } else {
             throw new RuntimeException("Value type " + valueType + " is unknown.");
@@ -83,7 +83,7 @@ public abstract class SosObject {
     }
 
     protected void skipValueTypeAndValueInByteBuffer(SosPosition position) {
-        byte valueType = bufferReader.getByte(position.position());
+        byte valueType = bufferReadPointer.getByte(position.position());
         position.incByte();
         switch (valueType) {
             case BYTE_VALUE:
@@ -117,23 +117,26 @@ public abstract class SosObject {
     }
 
     private void skipStringValueInByteBuffer(SosPosition position) {
-        int stringLength = bufferReader.getByte(position.position());
+        int stringLength = bufferReadPointer.getByte(position.position());
         position.incByte();
         position.addLength(stringLength);
     }
 
     protected void skipMapOrListValueInByteBuffer(SosPosition position) {
-        int mlLength = bufferReader.getShort(position.position());
+        int mlLength = bufferReadPointer.getShort(position.position());
         position.incShort();
         position.addLength(mlLength);
     }
 
     protected String getStringFromByteBuffer(SosPosition position) {
-        int length = bufferReader.getByte(position.position());
+        int length = bufferReadPointer.getByte(position.position());
         position.incByte();
-        byte[] bs = bufferReader.getBytes(position.position(), length);
+        byte[] bs = bufferReadPointer.getBytes(position.position(), length);
         position.addLength(length);
         return new String(bs, StandardCharsets.UTF_8);
     }
 
+    public int getStartBlockPosition() {
+        return startBlockPosition;
+    }
 }

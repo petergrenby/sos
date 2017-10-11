@@ -28,10 +28,12 @@ import java.nio.ByteBuffer;
 /**
  * Created by peteri on 21/02/16.
  */
-public interface ByteBlockBufferAllocator {
+public interface ByteBlockBufferAllocator extends ByteBlockBufferReader {
     int allocate(int sizeOfPayload);
 
     int allocateAndClear(int sizeOfPayload);
 
     int allocateAndClone(ByteBuffer buffer);
+
+    void deallocate(int blockPointer);
 }

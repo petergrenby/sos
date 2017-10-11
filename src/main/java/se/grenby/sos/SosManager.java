@@ -26,9 +26,13 @@ package se.grenby.sos;
 import se.grenby.sos.bbb.ByteBlockBufferAllocator;
 import se.grenby.sos.json.JsonDataList;
 import se.grenby.sos.json.JsonDataMap;
+import se.grenby.sos.object.SosList;
+import se.grenby.sos.object.SosMap;
+import se.grenby.sos.object.SosObject;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 import static se.grenby.sos.constant.SosConstants.*;
@@ -36,22 +40,41 @@ import static se.grenby.sos.constant.SosConstants.*;
 /**
  * Created by peteri on 30/01/16.
  */
-public class SosBuilder {
+public class SosManager {
 
     private static final int MAX_BYTES_SOS_OBJECT = Short.MAX_VALUE;
-    private static ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
+    private final ByteBlockBufferAllocator allocator;
+    private ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
 
-    public static int buildSosByteBlockBuffer(ByteBlockBufferAllocator allocator, JsonDataMap map) {
+    public SosManager(ByteBlockBufferAllocator allocator) {
+        this.allocator = allocator;
+    }
+
+    public SosMap createSosMap(JsonDataMap map) {
         ByteBuffer buffer = getByteBuffer();
 
         buildSosMap(buffer, map);
         buffer.flip();
 
         int blockPointer = allocator.allocateAndClone(buffer);
-        return blockPointer;
+        return new SosMap(allocator, blockPointer);
     }
 
-    private static ByteBuffer getByteBuffer() {
+    public SosList createSosList(JsonDataList list) {
+        ByteBuffer buffer = getByteBuffer();
+
+        buildSosList(buffer, list);
+        buffer.flip();
+
+        int blockPointer = allocator.allocateAndClone(buffer);
+        return new SosList(allocator, blockPointer);
+    }
+
+    public void removeSosObject(SosObject sosObject) {
+        allocator.deallocate(sosObject.getStartBlockPosition());
+    }
+
+    private ByteBuffer getByteBuffer() {
         ByteBuffer buffer = buffers.get();
         if (buffer == null) {
             buffer = ByteBuffer.allocate(MAX_BYTES_SOS_OBJECT);
@@ -61,7 +84,7 @@ public class SosBuilder {
         return buffer;
     }
 
-    private static void buildSosMap(ByteBuffer dst, JsonDataMap map) {
+    private void buildSosMap(ByteBuffer dst, JsonDataMap map) {
         dst.put(MAP_VALUE);
         // Move position so we can set size later on
         int mapSizePosition = dst.position();
@@ -74,7 +97,7 @@ public class SosBuilder {
         dst.putShort(mapSizePosition, (short) (dst.position() - Short.BYTES - mapSizePosition));
     }
 
-    private static void buildSosList(ByteBuffer dst, JsonDataList list) {
+    private void buildSosList(ByteBuffer dst, JsonDataList list) {
         dst.put(LIST_VALUE);
         // Move position so we can set size later on
         int listSizePosition = dst.position();
@@ -86,7 +109,7 @@ public class SosBuilder {
         dst.putShort(listSizePosition, (short) (dst.position() - Short.BYTES - listSizePosition));
     }
 
-    private static void buildValue(ByteBuffer dst, Object value) {
+    private void buildValue(ByteBuffer dst, Object value) {
         if (value instanceof JsonDataMap) {
             JsonDataMap map = (JsonDataMap) value;
             buildSosMap(dst, map);
@@ -117,7 +140,7 @@ public class SosBuilder {
         }
     }
 
-    private static void putStringInByteBuffer(ByteBuffer dst, String s) {
+    private void putStringInByteBuffer(ByteBuffer dst, String s) {
         byte[] bs = s.getBytes(StandardCharsets.UTF_8);
         dst.put((byte) bs.length);
         dst.put(bs);

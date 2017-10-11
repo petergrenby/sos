@@ -23,8 +23,10 @@
  */
 package se.grenby.sos.object;
 
-import se.grenby.sos.reader.BufferReader;
+import se.grenby.sos.bbb.ByteBlockBufferReader;
 import se.grenby.sos.json.JsonDataList;
+import se.grenby.sos.readpointer.BufferReadPointer;
+import se.grenby.sos.readpointer.ByteBlockBufferWrapperReadPointer;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -42,15 +44,24 @@ public class SosList extends SosObject implements Iterable<Object> {
     private final int listStartPosition;
     private final int listTotalLength;
 
-    SosList(BufferReader bufferReader, int position) {
-        super(bufferReader, position);
+    public SosList(ByteBlockBufferReader blockReader, int blockPointer) {
+        this(new ByteBlockBufferWrapperReadPointer(blockReader, blockPointer));
+    }
+
+    public SosList(BufferReadPointer bufferReadPointer) {
+        this(bufferReadPointer, 0);
+    }
+
+
+    SosList(BufferReadPointer bufferReadPointer, int position) {
+        super(bufferReadPointer, position);
 
         int blockPosition = startBlockPosition;
 
-        byte valueType = bufferReader.getByte(blockPosition);
+        byte valueType = bufferReadPointer.getByte(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == LIST_VALUE) {
-            listTotalLength = bufferReader.getShort(blockPosition);
+            listTotalLength = bufferReadPointer.getShort(blockPosition);
             blockPosition += Short.BYTES;
             listStartPosition = blockPosition;
         } else {
@@ -62,13 +73,13 @@ public class SosList extends SosObject implements Iterable<Object> {
         Object obj;
 
         int valuePosition = position.position();
-        int valueType = bufferReader.getByte(position.position());
+        int valueType = bufferReadPointer.getByte(position.position());
         position.incByte();
         if (valueType == MAP_VALUE) {
-            obj = new SosMap(bufferReader, valuePosition);
+            obj = new SosMap(bufferReadPointer, valuePosition);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == LIST_VALUE) {
-            obj = new SosList(bufferReader, valuePosition);
+            obj = new SosList(bufferReadPointer, valuePosition);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {
             obj = extractValue(Byte.class, valueType, position);
