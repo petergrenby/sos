@@ -23,7 +23,7 @@
  */
 package se.grenby.sos.object;
 
-import se.grenby.sos.readpointer.BufferReadPointer;
+import se.grenby.sos.byteblock.ByteBlockReadPointer;
 
 import java.nio.charset.StandardCharsets;
 
@@ -34,19 +34,19 @@ import static se.grenby.sos.util.BitUtil.HEXES;
  * Created by peteri on 30/01/16.
  */
 public abstract class SosObject {
-    protected final BufferReadPointer bufferReadPointer;
-    protected final int startBlockPosition;
+    protected final ByteBlockReadPointer byteBlockReadPointer;
+    protected final int objectStartPosition;
 
-    SosObject(BufferReadPointer bufferReadPointer, int position) {
-        this.bufferReadPointer = bufferReadPointer;
-        this.startBlockPosition = position;
+    SosObject(ByteBlockReadPointer byteBlockReadPointer, int position) {
+        this.byteBlockReadPointer = byteBlockReadPointer;
+        this.objectStartPosition = position;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < bufferReadPointer.getAllocatedSize(); i++) {
-            byte b = bufferReadPointer.getByte(i);
+        for (int i = 0; i < byteBlockReadPointer.getAllocatedSize(); i++) {
+            byte b = byteBlockReadPointer.getByte(i);
             sb.append(HEXES[(b & 0xff) >>> 4]);
             sb.append(HEXES[(b & 0xf)]);
             sb.append(" ");
@@ -57,24 +57,24 @@ public abstract class SosObject {
     protected <T> T extractValue(Class<T> klass, int valueType, SosPosition position) {
         T value;
         if (valueType == BYTE_VALUE) {
-            value = klass.cast(bufferReadPointer.getByte(position.position()));
+            value = klass.cast(byteBlockReadPointer.getByte(position.position()));
             position.incByte();
         } else if (valueType == SHORT_VALUE) {
-            value = klass.cast(bufferReadPointer.getShort(position.position()));
+            value = klass.cast(byteBlockReadPointer.getShort(position.position()));
             position.incShort();
         } else if (valueType == INTEGER_VALUE) {
-            value = klass.cast(bufferReadPointer.getInt(position.position()));
+            value = klass.cast(byteBlockReadPointer.getInt(position.position()));
             position.incInteger();
         } else if (valueType == LONG_VALUE) {
-            value = klass.cast(bufferReadPointer.getLong(position.position()));
+            value = klass.cast(byteBlockReadPointer.getLong(position.position()));
             position.incLong();
         } else if (valueType == STRING_VALUE) {
             value = klass.cast(getStringFromByteBuffer(position));
         } else if (valueType == FLOAT_VALUE) {
-            value = klass.cast(bufferReadPointer.getFloat(position.position()));
+            value = klass.cast(byteBlockReadPointer.getFloat(position.position()));
             position.incFloat();
         } else if (valueType == DOUBLE_VALUE) {
-            value = klass.cast(bufferReadPointer.getDouble(position.position()));
+            value = klass.cast(byteBlockReadPointer.getDouble(position.position()));
             position.incDouble();
         } else {
             throw new RuntimeException("Value type " + valueType + " is unknown.");
@@ -83,7 +83,7 @@ public abstract class SosObject {
     }
 
     protected void skipValueTypeAndValueInByteBuffer(SosPosition position) {
-        byte valueType = bufferReadPointer.getByte(position.position());
+        byte valueType = byteBlockReadPointer.getByte(position.position());
         position.incByte();
         switch (valueType) {
             case BYTE_VALUE:
@@ -117,26 +117,22 @@ public abstract class SosObject {
     }
 
     private void skipStringValueInByteBuffer(SosPosition position) {
-        int stringLength = bufferReadPointer.getByte(position.position());
+        int stringLength = byteBlockReadPointer.getByte(position.position());
         position.incByte();
         position.addLength(stringLength);
     }
 
     protected void skipMapOrListValueInByteBuffer(SosPosition position) {
-        int mlLength = bufferReadPointer.getShort(position.position());
+        int mlLength = byteBlockReadPointer.getShort(position.position());
         position.incShort();
         position.addLength(mlLength);
     }
 
     protected String getStringFromByteBuffer(SosPosition position) {
-        int length = bufferReadPointer.getByte(position.position());
+        int length = byteBlockReadPointer.getByte(position.position());
         position.incByte();
-        byte[] bs = bufferReadPointer.getBytes(position.position(), length);
+        byte[] bs = byteBlockReadPointer.getBytes(position.position(), length);
         position.addLength(length);
         return new String(bs, StandardCharsets.UTF_8);
-    }
-
-    public int getStartBlockPosition() {
-        return startBlockPosition;
     }
 }

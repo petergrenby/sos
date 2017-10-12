@@ -23,11 +23,11 @@
  */
 package se.grenby.sos.object;
 
-import se.grenby.sos.bbb.ByteBlockBufferReader;
-import se.grenby.sos.readpointer.ByteBlockBufferWrapperReadPointer;
-import se.grenby.sos.readpointer.BufferReadPointer;
+import se.grenby.sos.byteblock.ByteBlockReadPointer;
+import se.grenby.sos.byteblock.ByteBlockReader;
+import se.grenby.sos.byteblock.uniquebuffer.UniqueBufferByteBlockReadPointer;
+import se.grenby.sos.byteblock.sharedbuffer.SharedBufferByteBlockReadPointer;
 import se.grenby.sos.json.JsonDataMap;
-import se.grenby.sos.readpointer.ByteBufferWrapperReadPointer;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -45,26 +45,26 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
     private final int mapTotalLength;
 
     public SosMap(ByteBuffer byteBuffer) {
-        this(new ByteBufferWrapperReadPointer(byteBuffer));
+        this(new UniqueBufferByteBlockReadPointer(byteBuffer));
     }
 
-    public SosMap(ByteBlockBufferReader blockReader, int blockPointer) {
-        this(new ByteBlockBufferWrapperReadPointer(blockReader, blockPointer));
+    public SosMap(ByteBlockReader blockReader, int blockPointer) {
+        this(new SharedBufferByteBlockReadPointer(blockReader, blockPointer));
     }
 
-    public SosMap(BufferReadPointer bufferReadPointer) {
-        this(bufferReadPointer, 0);
+    public SosMap(ByteBlockReadPointer byteBlockReadPointer) {
+        this(byteBlockReadPointer, 0);
     }
 
-    public SosMap(BufferReadPointer bufferReadPointer, int position) {
-        super(bufferReadPointer, position);
+    public SosMap(ByteBlockReadPointer byteBlockReadPointer, int position) {
+        super(byteBlockReadPointer, position);
 
-        int blockPosition = startBlockPosition;
+        int blockPosition = objectStartPosition;
 
-        byte valueType = bufferReadPointer.getByte(blockPosition);
+        byte valueType = byteBlockReadPointer.getByte(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == MAP_VALUE) {
-            mapTotalLength = bufferReadPointer.getShort(blockPosition);
+            mapTotalLength = byteBlockReadPointer.getShort(blockPosition);
             blockPosition += Short.BYTES;
             mapStartPosition = blockPosition;
         } else {
@@ -116,12 +116,12 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
             String mk = getStringFromByteBuffer(position);
             if (key.equals(mk)) {
                 int valuePosition = position.position();
-                int valueType = bufferReadPointer.getByte(position.position());
+                int valueType = byteBlockReadPointer.getByte(position.position());
                 position.incByte();
                 if (valueType == MAP_VALUE) {
-                    value = klass.cast(new SosMap(bufferReadPointer, valuePosition));
+                    value = klass.cast(new SosMap(byteBlockReadPointer, valuePosition));
                 } else if (valueType == LIST_VALUE) {
-                    value = klass.cast(new SosList(bufferReadPointer, valuePosition));
+                    value = klass.cast(new SosList(byteBlockReadPointer, valuePosition));
                 } else {
                     value = extractValue(klass, valueType, position);
                 }
@@ -158,16 +158,16 @@ public class SosMap extends SosObject implements Iterable<Map.Entry<String, Obje
     private SosMapEntry extractEntry(SosPosition position) {
         String mk = getStringFromByteBuffer(position);
         int valuePosition = position.position();
-        int valueType = bufferReadPointer.getByte(position.position());
+        int valueType = byteBlockReadPointer.getByte(position.position());
         position.incByte();
 
         SosMapEntry entry;
         if (valueType == MAP_VALUE) {
-            SosMap cdm = new SosMap(bufferReadPointer, valuePosition);
+            SosMap cdm = new SosMap(byteBlockReadPointer, valuePosition);
             entry = new SosMapEntry(mk, cdm);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == LIST_VALUE) {
-            SosList cdl = new SosList(bufferReadPointer, valuePosition);
+            SosList cdl = new SosList(byteBlockReadPointer, valuePosition);
             entry = new SosMapEntry(mk, cdl);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {

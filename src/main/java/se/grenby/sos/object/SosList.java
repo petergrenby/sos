@@ -23,10 +23,10 @@
  */
 package se.grenby.sos.object;
 
-import se.grenby.sos.bbb.ByteBlockBufferReader;
+import se.grenby.sos.byteblock.ByteBlockReadPointer;
+import se.grenby.sos.byteblock.ByteBlockReader;
+import se.grenby.sos.byteblock.sharedbuffer.SharedBufferByteBlockReadPointer;
 import se.grenby.sos.json.JsonDataList;
-import se.grenby.sos.readpointer.BufferReadPointer;
-import se.grenby.sos.readpointer.ByteBlockBufferWrapperReadPointer;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -44,24 +44,24 @@ public class SosList extends SosObject implements Iterable<Object> {
     private final int listStartPosition;
     private final int listTotalLength;
 
-    public SosList(ByteBlockBufferReader blockReader, int blockPointer) {
-        this(new ByteBlockBufferWrapperReadPointer(blockReader, blockPointer));
+    public SosList(ByteBlockReader blockReader, int blockPointer) {
+        this(new SharedBufferByteBlockReadPointer(blockReader, blockPointer));
     }
 
-    public SosList(BufferReadPointer bufferReadPointer) {
-        this(bufferReadPointer, 0);
+    public SosList(ByteBlockReadPointer byteBlockReadPointer) {
+        this(byteBlockReadPointer, 0);
     }
 
 
-    SosList(BufferReadPointer bufferReadPointer, int position) {
-        super(bufferReadPointer, position);
+    SosList(ByteBlockReadPointer byteBlockReadPointer, int position) {
+        super(byteBlockReadPointer, position);
 
-        int blockPosition = startBlockPosition;
+        int blockPosition = objectStartPosition;
 
-        byte valueType = bufferReadPointer.getByte(blockPosition);
+        byte valueType = byteBlockReadPointer.getByte(blockPosition);
         blockPosition += Byte.BYTES;
         if (valueType == LIST_VALUE) {
-            listTotalLength = bufferReadPointer.getShort(blockPosition);
+            listTotalLength = byteBlockReadPointer.getShort(blockPosition);
             blockPosition += Short.BYTES;
             listStartPosition = blockPosition;
         } else {
@@ -73,13 +73,13 @@ public class SosList extends SosObject implements Iterable<Object> {
         Object obj;
 
         int valuePosition = position.position();
-        int valueType = bufferReadPointer.getByte(position.position());
+        int valueType = byteBlockReadPointer.getByte(position.position());
         position.incByte();
         if (valueType == MAP_VALUE) {
-            obj = new SosMap(bufferReadPointer, valuePosition);
+            obj = new SosMap(byteBlockReadPointer, valuePosition);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == LIST_VALUE) {
-            obj = new SosList(bufferReadPointer, valuePosition);
+            obj = new SosList(byteBlockReadPointer, valuePosition);
             skipMapOrListValueInByteBuffer(position);
         } else if (valueType == BYTE_VALUE) {
             obj = extractValue(Byte.class, valueType, position);

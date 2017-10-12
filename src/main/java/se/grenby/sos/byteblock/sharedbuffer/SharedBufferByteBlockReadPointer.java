@@ -21,61 +21,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.sos.readpointer;
+package se.grenby.sos.byteblock.sharedbuffer;
 
-import java.nio.ByteBuffer;
+import se.grenby.sos.byteblock.ByteBlockReadPointer;
+import se.grenby.sos.byteblock.ByteBlockReader;
 
 /**
  * Created by peteri on 5/31/16.
  */
-public class ByteBufferWrapperReadPointer implements BufferReadPointer {
+public class SharedBufferByteBlockReadPointer implements ByteBlockReadPointer {
 
-    private final ByteBuffer byteBuffer;
+    private final ByteBlockReader blockReader;
+    private final int blockPointer;
 
-    public ByteBufferWrapperReadPointer(ByteBuffer byteBuffer) {
-        this.byteBuffer = byteBuffer;
+    public SharedBufferByteBlockReadPointer(ByteBlockReader blockReader, int blockPointer) {
+        this.blockReader = blockReader;
+        this.blockPointer = blockPointer;
     }
 
     @Override
     public byte[] getBytes(int position, int length) {
-        byte[] bs = new byte[length];
-        byteBuffer.position(position);
-        byteBuffer.get(bs, 0, length);
-        return bs;
+        return blockReader.getBytes(blockPointer, position, length);
     }
 
     @Override
     public byte getByte(int position) {
-        return byteBuffer.get(position);
+        return blockReader.getByte(blockPointer, position);
     }
 
     @Override
     public short getShort(int position) {
-        return byteBuffer.getShort(position);
+        return blockReader.getShort(blockPointer, position);
     }
 
     @Override
     public int getInt(int position) {
-        return byteBuffer.getInt(position);
+        return blockReader.getInt(blockPointer, position);
     }
 
     @Override
     public long getLong(int position) {
-        return byteBuffer.getLong(position);
+        return blockReader.getLong(blockPointer, position);
     }
 
     @Override
     public float getFloat(int position) {
-        return byteBuffer.getFloat(position);
+        return blockReader.getFloat(blockPointer, position);
     }
 
     @Override
     public double getDouble(int position) {
-        return byteBuffer.getDouble(position);
+        return blockReader.getDouble(blockPointer, position);
     }
 
     @Override
     public int getAllocatedSize() {
-        return byteBuffer.capacity();
+        return blockReader.allocatedSize(blockPointer);
     }
 }

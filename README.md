@@ -1,4 +1,4 @@
-# Project Kollo
+# Project Kollo (now called SOS)
 Off heap memory allocation with object (JSON structures) serialization/deserialization. It allows direct access to object that are off heap through the immutable Simple Object Structure (or structure).
 
 ## Byte Block Buffer

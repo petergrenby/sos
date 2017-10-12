@@ -2,7 +2,7 @@ package se.grenby.sos;
 
 import org.junit.Before;
 import org.junit.Test;
-import se.grenby.sos.bbb.SimpleByteBlockBufferManager;
+import se.grenby.sos.byteblock.uniquebuffer.UniqueBufferByteBlockManager;
 import se.grenby.sos.json.JsonDataList;
 import se.grenby.sos.json.JsonDataMap;
 import se.grenby.sos.object.SosList;
@@ -12,14 +12,14 @@ import java.util.Iterator;
 
 import static org.junit.Assert.*;
 
-public class SosTest {
+public class SosUniqueBufferTest {
 
     private SosManager sosManager;
 
 
     @Before
     public void initializer() {
-        sosManager = new SosManager(new SimpleByteBlockBufferManager());
+        sosManager = new SosManager(new UniqueBufferByteBlockManager());
     }
 
     @Test

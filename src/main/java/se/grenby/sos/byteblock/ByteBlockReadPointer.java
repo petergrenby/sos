@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.sos.readpointer;
+package se.grenby.sos.byteblock;
 
 /**
  * Created by peteri on 5/31/16.
  */
-public interface BufferReadPointer {
+public interface ByteBlockReadPointer {
 
     byte[] getBytes(int position, int length);
 

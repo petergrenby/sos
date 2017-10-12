@@ -21,19 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package se.grenby.sos.bbb;
-
-import java.nio.ByteBuffer;
+package se.grenby.sos.byteblock;
 
 /**
- * Created by peteri on 21/02/16.
+ * Created by peteri on 15/02/16.
  */
-public interface ByteBlockBufferAllocator extends ByteBlockBufferReader {
-    int allocate(int sizeOfPayload);
+public interface ByteBlockReader {
+    byte[] getBytes(int blockPointer, int position, int length);
 
-    int allocateAndClear(int sizeOfPayload);
+    byte getByte(int blockPointer, int position);
 
-    int allocateAndClone(ByteBuffer buffer);
+    short getShort(int blockPointer, int position);
 
-    void deallocate(int blockPointer);
+    int getInt(int blockPointer, int position);
+
+    long getLong(int blockPointer, int position);
+
+    float getFloat(int blockPointer, int position);
+
+    double getDouble(int blockPointer, int position);
+
+    int allocatedSize(int blockPointer);
 }

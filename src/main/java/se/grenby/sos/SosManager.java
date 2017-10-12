@@ -23,7 +23,7 @@
  */
 package se.grenby.sos;
 
-import se.grenby.sos.bbb.ByteBlockBufferAllocator;
+import se.grenby.sos.byteblock.ByteBlockAllocator;
 import se.grenby.sos.json.JsonDataList;
 import se.grenby.sos.json.JsonDataMap;
 import se.grenby.sos.object.SosList;
@@ -43,10 +43,11 @@ import static se.grenby.sos.constant.SosConstants.*;
 public class SosManager {
 
     private static final int MAX_BYTES_SOS_OBJECT = Short.MAX_VALUE;
-    private final ByteBlockBufferAllocator allocator;
+    private final ByteBlockAllocator allocator;
     private ThreadLocal<ByteBuffer> buffers = new ThreadLocal<>();
+    private Map<SosObject, Integer> objectToBlockMap = new HashMap<>();
 
-    public SosManager(ByteBlockBufferAllocator allocator) {
+    public SosManager(ByteBlockAllocator allocator) {
         this.allocator = allocator;
     }
 
@@ -57,7 +58,9 @@ public class SosManager {
         buffer.flip();
 
         int blockPointer = allocator.allocateAndClone(buffer);
-        return new SosMap(allocator, blockPointer);
+        SosMap so = new SosMap(allocator, blockPointer);
+        objectToBlockMap.put(so, blockPointer);
+        return so;
     }
 
     public SosList createSosList(JsonDataList list) {
@@ -67,11 +70,13 @@ public class SosManager {
         buffer.flip();
 
         int blockPointer = allocator.allocateAndClone(buffer);
-        return new SosList(allocator, blockPointer);
+        SosList so = new SosList(allocator, blockPointer);
+        objectToBlockMap.put(so, blockPointer);
+        return so;
     }
 
     public void removeSosObject(SosObject sosObject) {
-        allocator.deallocate(sosObject.getStartBlockPosition());
+        allocator.deallocate(objectToBlockMap.get(sosObject));
     }
 
     private ByteBuffer getByteBuffer() {

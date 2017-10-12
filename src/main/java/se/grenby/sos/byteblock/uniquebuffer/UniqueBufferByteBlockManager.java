@@ -1,11 +1,13 @@
-package se.grenby.sos.bbb;
+package se.grenby.sos.byteblock.uniquebuffer;
 
-import se.grenby.sos.readpointer.BufferReadPointer;
+import se.grenby.sos.byteblock.ByteBlockAllocator;
+import se.grenby.sos.byteblock.ByteBlockReader;
+import se.grenby.sos.byteblock.ByteBlockReadPointer;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
-public class SimpleByteBlockBufferManager implements ByteBlockBufferAllocator, ByteBlockBufferReader {
+public class UniqueBufferByteBlockManager implements ByteBlockAllocator, ByteBlockReader {
     private ArrayList<ByteBuffer> byteBlocks = new ArrayList<>();
 
     @Override
@@ -30,10 +32,10 @@ public class SimpleByteBlockBufferManager implements ByteBlockBufferAllocator, B
         return byteBlocks.size() - 1;
     }
 
-    public BufferReadPointer getBlock(int blockIndex) {
+    public ByteBlockReadPointer getBlock(int blockIndex) {
         final ByteBuffer block = byteBlocks.get(blockIndex);
 
-        return new BufferReadPointer() {
+        return new ByteBlockReadPointer() {
 
             @Override
             public byte[] getBytes(int position, int length) {
