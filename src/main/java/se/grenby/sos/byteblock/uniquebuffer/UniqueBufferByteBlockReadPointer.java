@@ -78,6 +78,6 @@ public class UniqueBufferByteBlockReadPointer implements ByteBlockReadPointer {
 
     @Override
     public int getAllocatedSize() {
-        return byteBuffer.capacity();
+        return byteBuffer.limit();
     }
 }

@@ -2,8 +2,7 @@ package se.grenby.sos;
 
 import org.junit.Before;
 import org.junit.Test;
-import se.grenby.sos.byteblock.sharedbuffer.SharedByteBlockManager;
-import se.grenby.sos.byteblock.uniquebuffer.UniqueBufferByteBlockManager;
+import se.grenby.sos.byteblock.sharedbuffer.SharedBufferByteBlockManager;
 import se.grenby.sos.json.JsonDataList;
 import se.grenby.sos.json.JsonDataMap;
 import se.grenby.sos.object.SosList;
@@ -21,7 +20,7 @@ public class SosSharedBufferTest {
 
     @Before
     public void initializer() {
-        sosManager = new SosManager(new SharedByteBlockManager(1024*10));
+        sosManager = new SosManager(new SharedBufferByteBlockManager(1024*10));
     }
 
     @Test

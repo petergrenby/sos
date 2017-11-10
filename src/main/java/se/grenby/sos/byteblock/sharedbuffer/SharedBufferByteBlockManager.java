@@ -35,9 +35,9 @@ import static se.grenby.sos.constant.PrimitiveConstants.INT_VALUE_FOR_NULL;
 /**
  * Created by peteri on 23/10/15.
  */
-public class SharedByteBlockManager implements ByteBlockAllocator, ByteBlockReader {
+public class SharedBufferByteBlockManager implements ByteBlockAllocator, ByteBlockReader {
 
-    private final static Logger logger = Logger.getLogger(SharedByteBlockManager.class.getName());
+    private final static Logger logger = Logger.getLogger(SharedBufferByteBlockManager.class.getName());
 
     // The smallest block that is allowed after a split.
     // Some if it will taken for overhead block handling, 8 bytes at time of writing.
@@ -65,7 +65,7 @@ public class SharedByteBlockManager implements ByteBlockAllocator, ByteBlockRead
     private int numberOfBlocksInBins = 0;
     private int totalSizeOfBlocksInBins = 0;
 
-    public SharedByteBlockManager(final int capacity) {
+    public SharedBufferByteBlockManager(final int capacity) {
         blockBuffer = new SharedBufferByteBlocks(capacity);
 
         numberOfBins = BitUtil.numberOfBitsNeeded(blockBuffer.getCapacity());

@@ -39,7 +39,7 @@ public class SharedBufferByteBlocksManagerTest {
 
     @Test
     public void testAlloction() {
-        SharedByteBlockManager bbbm = new SharedByteBlockManager(1024);
+        SharedBufferByteBlockManager bbbm = new SharedBufferByteBlockManager(1024);
 
         int orginalSpace = bbbm.getTotalAvailableSpace();
 
@@ -47,13 +47,13 @@ public class SharedBufferByteBlocksManagerTest {
         int p1 = bbbm.allocate(allocationSize);
         assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
         assertTrue("Incorrect size of allocated block", allocationSize <= bbbm.allocatedSize(p1));
-        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - SharedByteBlockManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
+        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - SharedBufferByteBlockManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
     }
 
     @Test
     public void testAlloctionAndDeallocation() {
-        SharedByteBlockManager bbbm = new SharedByteBlockManager(1024);
+        SharedBufferByteBlockManager bbbm = new SharedBufferByteBlockManager(1024);
 
         int orginalSpace = bbbm.getTotalAvailableSpace();
 
@@ -61,7 +61,7 @@ public class SharedBufferByteBlocksManagerTest {
         int p1 = bbbm.allocate(allocationSize);
         assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
         assertTrue("Incorrect size of allocated block", allocationSize <= bbbm.allocatedSize(p1));
-        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - SharedByteBlockManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
+        assertEquals("Available space to manager is not correct after allocation", orginalSpace - allocationSize - SharedBufferByteBlockManager.MANAGED_BLOCK_OVERHEAD_IN_BYTES, bbbm.getTotalAvailableSpace());
         assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
 
 
@@ -72,7 +72,7 @@ public class SharedBufferByteBlocksManagerTest {
 
     @Test
     public void testBigAlloction() {
-        SharedByteBlockManager bbbm = new SharedByteBlockManager(1100);
+        SharedBufferByteBlockManager bbbm = new SharedBufferByteBlockManager(1100);
 
         int p1 = bbbm.allocate(1000);
         assertNotEquals("No block allocation pointer was returned", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
@@ -81,7 +81,7 @@ public class SharedBufferByteBlocksManagerTest {
 
     @Test
     public void testTooBigAlloction() {
-        SharedByteBlockManager bbbm = new SharedByteBlockManager(1024);
+        SharedBufferByteBlockManager bbbm = new SharedBufferByteBlockManager(1024);
 
         int p1 = bbbm.allocate(1024);
         assertEquals("Allocation pointer was returned even though allocation should not have been possible", PrimitiveConstants.INT_VALUE_FOR_NULL, p1);
@@ -91,7 +91,7 @@ public class SharedBufferByteBlocksManagerTest {
     @Test
     public void testMassiveAllocationAndDeallocation() {
         List<Integer> pointers = new ArrayList<>(2000);
-        SharedByteBlockManager bbbm = new SharedByteBlockManager(1024*1024*1024);
+        SharedBufferByteBlockManager bbbm = new SharedBufferByteBlockManager(1024*1024*1024);
 
         assertTrue("Integrity of memory management and/or byte block blockbuffer has been compromised", bbbm.verfiyIntegrity());
 

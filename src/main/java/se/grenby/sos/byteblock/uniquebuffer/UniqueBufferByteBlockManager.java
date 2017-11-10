@@ -23,7 +23,7 @@ public class UniqueBufferByteBlockManager implements ByteBlockAllocator, ByteBlo
 
     @Override
     public int allocateAndClone(ByteBuffer buffer) {
-        ByteBuffer clone = ByteBuffer.allocate(buffer.capacity());
+        ByteBuffer clone = ByteBuffer.allocate(buffer.limit());
         buffer.rewind();
         clone.put(buffer);
         buffer.rewind();
@@ -77,7 +77,7 @@ public class UniqueBufferByteBlockManager implements ByteBlockAllocator, ByteBlo
 
             @Override
             public int getAllocatedSize() {
-                return block.position();
+                return block.limit();
             }
         };
     }
@@ -126,6 +126,6 @@ public class UniqueBufferByteBlockManager implements ByteBlockAllocator, ByteBlo
 
     @Override
     public int allocatedSize(int blockPointer) {
-        return byteBlocks.get(blockPointer).capacity();
+        return byteBlocks.get(blockPointer).limit();
     }
 }
